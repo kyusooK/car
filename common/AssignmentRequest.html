@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>AssignmentRequest</title>
+        <script src="/common/plugins/ibsheet8/ibsheet.js"></script>
+        <script src="/common/plugins/ibsheet8/ibleaders.js"></script>
+        <link rel="stylesheet" type="text/css" href="/common/plugins/ibsheet8/css/default/main.css">
+        <script src="/common/plugins/ibsheet8/locale/ko.js"></script>
+        <script src="/common/plugins/jquery-3.4.1.js"></script>
+        <script src="/common/plugins/i18next.min.js"></script>
+        <script src="/common/js/AssignmentRequest.js"></script>
+        <style>
+            body {
+                margin: 0px;
+            }
+            .modal {
+                display: none; /* 기본적으로 숨김 */
+                position: fixed; /* 화면 고정 */
+                z-index: 1; /* 최상단 레벨 */
+                left: 0;
+                top: 0;
+                width: 100%; /* 전체 너비 */
+                height: 100vh; /* 전체 높이 */
+                background-color: rgba(0, 0, 0, 0.4); /* 반투명 배경 */
+            }
+
+            .modal-content {
+                position: absolute; /* 절대 위치 지정 */
+                top: 50%; /* 세로 중앙 기준 */
+                left: 50%; /* 가로 중앙 기준 */
+                transform: translate(-50%, -50%); /* 중앙으로 이동 */
+                background-color: #fefefe; /* 모달 배경 */
+                padding: 20px; /* 내부 여백 */
+                border: 1px solid #888; /* 테두리 */
+                width: 80%; /* 모달 너비 */
+                max-width: 600px; /* 최대 너비 제한 */
+                border-radius: 8px; /* 둥근 모서리 */
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 그림자 효과 */
+                max-height: 80%; /* 최대 높이 제한 */
+                display: flex; /* 내부 요소 배치 */
+                flex-direction: column; /* 세로 정렬 */
+            }
+
+            #assignmentRequestDialog {
+                overflow: auto; /* 내부 스크롤 활성화 */
+                flex: 1; /* form이 나머지 공간 차지 */
+                padding: 10px; /* form 내부 여백 */
+                max-height: 100%; /* form 최대 높이 */
+            }
+            #updateAssignmentRequestForm {
+                overflow: auto; /* 내부 스크롤 활성화 */
+                flex: 1; /* form이 나머지 공간 차지 */
+                padding: 10px; /* form 내부 여백 */
+                max-height: 100%; /* form 최대 높이 */
+            }
+            #cancelAssignmentRequestForm {
+                overflow: auto; /* 내부 스크롤 활성화 */
+                flex: 1; /* form이 나머지 공간 차지 */
+                padding: 10px; /* form 내부 여백 */
+                max-height: 100%; /* form 최대 높이 */
+            }
+
+            .close {
+                color: #aaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+            .close:hover,
+            .close:focus {
+                color: black;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .hamburger {
+                font-size: 30px;
+                cursor: pointer;
+                padding: 0px;
+            }
+            .sidebar {
+                height: 100%;
+                width: 0;
+                position: fixed;
+                z-index: 9;
+                top: 0;
+                left: 0;
+                background-color: #3d5575;
+                overflow-x: hidden;
+                transition: 0.5s;
+                border-right: 1px solid #D3D3D3;
+            }
+            .sidebar a {
+                padding: 10px 15px;
+                text-decoration: none;
+                font-size: 25px;
+                color: #D3D3D3;
+                display: block;
+                transition: 0.3s;
+            }
+            .sidebar a:hover {
+                color: #f1f1f1;
+            }
+            .sidebar-header {
+                display: flex; /* Flexbox 활성화 */
+                align-items: center; /* 세로 정렬 */
+                justify-content: space-between; /* 양쪽 정렬 및 중간 공간 최대로 확보 */
+                padding: 10px; /* 적절한 여백 추가 */
+                background-color: #3d5575; /* 배경색 (필요시 수정) */
+                color: white; /* 텍스트 색상 (필요시 수정) */
+            }
+
+            .sidebar-header h1 {
+                margin: 0; /* 불필요한 기본 여백 제거 */
+                font-size: 24px; /* 제목 크기 조정 */
+            }
+
+            .sidebar-header .closebtn {
+                font-size: 24px; /* 닫기 버튼 크기 조정 */
+                text-decoration: none; /* 링크 밑줄 제거 */
+                color: white; /* 닫기 버튼 색상 */
+                cursor: pointer; /* 커서 모양 변경 */
+            }
+            .sidebar-header h1 {
+                color:white;
+                padding:0px 0px 0px 4px;
+            }
+
+            .header {
+                display: flex; /* Flexbox 활성화 */
+                align-items: center; /* 세로 가운데 정렬 */
+                padding: 10px; /* 적절한 여백 추가 */
+                background-color: #f0f0f0; /* 배경색 (필요 시 수정 가능) */
+            }
+
+            .header h1 {
+                margin: 0 0 0 16px; /* 기본 마진 제거 */
+                font-size: 24px; /* 제목 크기 조정 */
+                color: #333; /* 텍스트 색상 */
+            }
+
+            .hamburger {
+                font-size: 24px; /* 햄버거 메뉴 크기 조정 */
+                cursor: pointer; /* 클릭 가능한 커서 표시 */
+                color: #333; /* 텍스트 색상 */
+            }
+
+            button {
+                all: unset; /* 기본 브라우저 스타일 제거 */
+                display: inline-block; /* 버튼을 인라인 블록으로 설정 */
+                background-color: white; /* 배경색 하얗게 설정 */
+                color: black; /* 텍스트 색상 검정 */
+                border-radius: 8px; /* 둥근 모서리 */
+                padding: 10px 20px; /* 내부 여백 */
+                font-size: 16px; /* 글자 크기 */
+                font-weight: bold; /* 글자 굵기 */
+                text-align: center; /* 텍스트 가운데 정렬 */
+                cursor: pointer; /* 클릭 가능한 커서 */
+                transition: all 0.3s ease; /* 부드러운 전환 효과 */
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 가벼운 그림자 효과 */
+            }
+
+            button:hover {
+                background-color: #f5f5f5; /* 오버 시 약간 어두운 배경 */
+                border-color: #ccc; /* 테두리 색상 변경 */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* 그림자 강화 */
+            }
+
+            button:active {
+                background-color: #e0e0e0; /* 클릭 시 더 어두운 배경 */
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* 그림자 줄임 */
+            }
+
+            button:focus {
+                outline: none; /* 기본 포커스 제거 */
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5); /* 포커스 시 강조 효과 */
+            }
+
+            .sticker {
+                display: inline-block; /* 인라인 블록으로 설정 */
+                background-color: #F8D454; /* 밝은 노란색 배경 */
+                color: black; /* 텍스트 색상 */
+                border-radius: 8px; /* 약간의 둥근 모서리 */
+                padding: 10px 15px; /* 스티커 내부 여백 */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 약간의 그림자 효과 */
+                font-family: Arial, sans-serif; /* 기본 폰트 */
+                position: relative; /* 상단 텍스트 배치를 위해 relative 설정 */
+                text-align: center;
+                margin:10px;
+            }
+
+            .sticker-header {
+                font-size: 12px; /* 작은 크기 */
+                font-weight: bold; /* 강조 */
+                margin: 0 0 8px 0px;
+            }
+
+            .sticker-content {
+                margin: 0; /* 기본 마진 제거 */
+                font-size: 16px; /* 텍스트 크기 */
+                font-weight: bold; /* 텍스트 강조 */
+                text-align: center; /* 텍스트 가운데 정렬 */
+            }
+            input {
+                width: 100%; /* 입력 필드의 너비를 100%로 설정 */
+                padding: 10px; /* 내부 여백 추가 */
+                margin-bottom: 10px; /* 아래쪽 여백 추가 */
+                font-size: 14px; /* 글자 크기 */
+                border: 1px solid #ccc; /* 테두리 색상 */
+                border-radius: 4px; /* 모서리 둥글게 */
+                box-sizing: border-box; /* 테두리와 패딩 포함 */
+            }
+
+            input::placeholder {
+                color: #aaa; /* placeholder 텍스트 색상 */
+                font-style: italic; /* placeholder 글꼴 스타일 */
+            }
+
+            .input-row {
+                gap: 10px; /* 입력 필드 사이 간격 */
+                flex-wrap: wrap; /* 화면 크기에 따라 줄바꿈 가능 */
+            }
+
+            .input-row input {
+                flex: 1; /* 입력 필드 너비 균등 분배 */
+                padding: 10px; /* 내부 여백 추가 */
+                font-size: 14px; /* 글자 크기 */
+                border: 1px solid #ccc; /* 테두리 색상 */
+                border-radius: 4px; /* 모서리 둥글게 */
+                box-sizing: border-box; /* 테두리와 패딩 포함 */
+            }
+            .vue-card {
+                background-color: white; /* 카드 배경색 */
+                border-radius: 8px; /* 둥근 모서리 */
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 가벼운 그림자 효과 */
+                padding: 20px; /* 카드 내부 여백 */
+                font-family: Arial, sans-serif; /* 기본 폰트 설정 */
+            }
+
+            /* 제목 스타일 */
+            .vue-card h2 {
+                margin-top: 0; /* 상단 마진 제거 */
+                font-size: 20px; /* 제목 크기 */
+                color: #333; /* 텍스트 색상 */
+                font-weight: bold; /* 강조 */
+            }
+
+            /* 기본 Flexbox 행 정의 */
+            .default-row {
+                display: flex; /* Flexbox 활성화 */
+                flex-wrap: wrap; /* 줄바꿈 가능 */
+                gap: var(--gap, 10px); /* 기본 간격을 CSS 변수로 설정 (조정 가능) */
+                align-items: center; /* 세로 축 정렬 */
+            }
+
+            /* 중간 공백을 유연하게 분배하는 클래스 */
+            .v-space {
+                flex-grow: 1; /* 여유 공간을 차지 */
+            }
+
+            /* 컨테이너 스타일 */
+            .select-container {
+                position: relative;
+                margin-bottom: 15px;
+                width: 100%; /* 너비를 조정 가능 */
+            }
+
+            /* Select 스타일 */
+            .select-container select {
+                width: 100%; /* Select 너비를 컨테이너에 맞춤 */
+                padding: 10px 15px; /* 내부 여백 */
+                font-size: 16px; /* 글자 크기 */
+                font-family: Arial, sans-serif;
+                border: 1px solid #ccc; /* 테두리 색상 */
+                border-radius: 4px; /* 둥근 모서리 */
+                background-color: white; /* 배경색 */
+                appearance: none; /* 기본 Select 화살표 제거 */
+                outline: none; /* 포커스 외곽선 제거 */
+                cursor: pointer; /* 클릭 가능한 커서 */
+            }
+
+            /* Hover 효과 */
+            .select-container select:hover {
+                border-color: #888; /* Hover 시 테두리 색상 변경 */
+            }
+
+            /* Focus 효과 */
+            .select-container select:focus {
+                border-color: #2196F3; /* 파란색 테두리 (input 포커스 색상) */
+                box-shadow: 0 0 5px rgba(33, 150, 243, 0.5); /* 부드러운 파란색 그림자 */
+                outline: none; /* 기본 포커스 외곽선 제거 */
+            }
+
+            /* Select의 화살표 커스터마이징 */
+            .select-container::after {
+                content: '▼'; /* 화살표 모양 */
+                position: absolute;
+                top: 50%;
+                right: 15px;
+                transform: translateY(-50%);
+                pointer-events: none; /* 클릭 불가 */
+                font-size: 12px;
+                color: #888;
+                margin-top:10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div class="hamburger" onclick="toggleSidebar()">☰</div>
+            <h1>Carassignment</h1>
+        </div>
+
+        <div id="mySidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h1>Carassignment</h1>
+                <a href="javascript:void(0)" class="closebtn" onclick="toggleSidebar()">×</a>
+            </div>
+            <a href="/common" style="font-size: 20px;">Home</a>
+            <a href="/common/assignmentRequests" style="display: block; margin-top: 10px;">assignmentRequest</a>,
+<a href="/common/assignmentRecords" style="display: block; margin-top: 10px;">assignmentRecord</a>
+        </div>
+        
+        <div class="sticker">
+            <p class="sticker-header"><< Aggregate >></p>
+            <p class="sticker-content">AssignmentRequest</p>
+        </div>
+        <div style="padding:10px;">
+            <button type="button" class='buttonLabelSearch' onclick="retrieve()">조회</button>
+            <button type="button" class='buttonLabelSave' onclick="saveRow()">저장</button>
+            <button type="button" class='buttonLabelAddRow' onclick="openDialog('assignmentRequestDialog')">신규</button>
+            <button type="button" class='buttonLabelDeleteRow' onclick="deleteData()">삭제</button>
+            <button type="button" onclick="openDialog('updateAssignmentRequest')">배차 신청 수정</button>
+            <button type="button" onclick="openDialog('cancelAssignmentRequest')">배차 신청 취소</button>
+
+            <div class="vue-card">
+                <h2>검색 필터</h2>
+                <div class="input-row">
+                    <input type="number" id="searchRequestId" name="searchRequestId" placeholder="RequestId">
+                    <input type="text" id="searchApplicantName" name="searchApplicantName" placeholder="ApplicantName">
+                    <input type="text" id="searchVehicleType" name="searchVehicleType" placeholder="VehicleType">
+                    <input type="text" id="searchOperationPeriod" name="searchOperationPeriod" placeholder="OperationPeriod">
+                    <input type="text" id="searchStatus" name="searchStatus" placeholder="Status">
+                </div>
+                <div class="default-row">
+                    <div class="v-space"></div>
+                    <button type="button" onclick="search()">검색</button>
+                </div>
+            </div>
+            <br>
+            <div class="vue-card">
+                <h2>검색 필터</h2>
+                <div class="input-row">
+                    <input type="number" id="searchRequestId" name="searchRequestId" placeholder="RequestId">
+                    <input type="text" id="searchApplicant" name="searchApplicant" placeholder="Applicant">
+                    <input type="text" id="searchApprovalInfo" name="searchApprovalInfo" placeholder="ApprovalInfo">
+                    <input type="text" id="searchPurpose" name="searchPurpose" placeholder="Purpose">
+                    <input type="text" id="searchUsageType" name="searchUsageType" placeholder="UsageType">
+                    <input type="text" id="searchOperationPeriod" name="searchOperationPeriod" placeholder="OperationPeriod">
+                    <input type="text" id="searchVehicleType" name="searchVehicleType" placeholder="VehicleType">
+                    <input type="number" id="searchNumberOfPassengers" name="searchNumberOfPassengers" placeholder="NumberOfPassengers">
+                    <input type="text" id="searchDriverIncluded" name="searchDriverIncluded" placeholder="DriverIncluded">
+                    <input type="text" id="searchContactNumber" name="searchContactNumber" placeholder="ContactNumber">
+                    <input type="text" id="searchRemarks" name="searchRemarks" placeholder="Remarks">
+                    <input type="text" id="searchAttachedDocuments" name="searchAttachedDocuments" placeholder="AttachedDocuments">
+                </div>
+                <div class="default-row">
+                    <div class="v-space"></div>
+                    <button type="button" onclick="search()">검색</button>
+                </div>
+            </div>
+            <br>
+            <div id="sheet_DIV" style="width:100%;height:400px"></div>
+            <div id="detailSheet_DIV" style="width:100%;height:100%"></div>
+
+            <!-- 등록 Dialog -->
+            <div id="assignmentRequestDialog" style="z-index:99;" class="modal">
+                <div class="modal-content">
+                    <div class="default-row">
+                        <h2>AssignmentRequest</h2>
+                        <div class="v-space"></div>
+                        <span class="close" onclick="closeDialog('assignmentRequestDialog')">&times;</span>
+                    </div>
+                    <form id="assignmentRequestForm">
+                        <label for="requestId">RequestId:</label>
+                        <input type="number" id="requestId" name="requestId"><br><br>
+                        <label for="purpose">Purpose:</label>
+                        <input type="text" id="purpose" name="purpose"><br><br>
+                        <label for="numberOfPassengers">NumberOfPassengers:</label>
+                        <input type="number" id="numberOfPassengers" name="numberOfPassengers"><br><br>
+                        <label for="contactNumber">ContactNumber:</label>
+                        <input type="text" id="contactNumber" name="contactNumber"><br><br>
+                        <label for="remarks">Remarks:</label>
+                        <input type="text" id="remarks" name="remarks"><br><br>
+                        <div class="select-container">
+                            <label for="requestStatus">RequestStatus:</label>
+                            <select id="requestStatus" required>
+                                <option value="PENDING">PENDING</option>
+                                <option value="APPROVED">APPROVED</option>
+                                <option value="REJECTED">REJECTED</option>
+                                <option value="COMPLETED">COMPLETED</option>
+                            </select>
+                        </div>
+                        <div class="select-container">
+                            <label for="usageType">UsageType:</label>
+                            <select id="usageType" required>
+                                <option value="BUSINESS_SUPPORT">BUSINESS_SUPPORT</option>
+                                <option value="EXTERNAL_ACTIVITY">EXTERNAL_ACTIVITY</option>
+                            </select>
+                        </div>
+                        <div class="vue-card" style="margin-bottom:10px;">
+                            <label for="applicant">applicant</label><br><br>
+                            <label for="Name">name:</label>
+                            <input type="text" id="Name" name="Name"><br><br>
+                            <label for="Department">department:</label>
+                            <input type="text" id="Department" name="Department"><br><br>
+                            <label for="EmployeeId">employeeId:</label>
+                            <input type="text" id="EmployeeId" name="EmployeeId"><br><br>
+                            <label for="PhoneNumber">phoneNumber:</label>
+                            <input type="text" id="PhoneNumber" name="PhoneNumber"><br><br>
+                            <label for="MobileNumber">mobileNumber:</label>
+                            <input type="text" id="MobileNumber" name="MobileNumber"><br><br>
+                            <label for="ApplicationDate">applicationDate:</label>
+                            <input type="date" id="ApplicationDate" name="ApplicationDate"><br><br>
+                        </div>
+                        <div class="vue-card" style="margin-bottom:10px;">
+                            <label for="approvalInfo">approvalInfo</label><br><br>
+                            <label for="ApproverName">approverName:</label>
+                            <input type="text" id="ApproverName" name="ApproverName"><br><br>
+                            <label for="ApproverPosition">approverPosition:</label>
+                            <input type="text" id="ApproverPosition" name="ApproverPosition"><br><br>
+                        </div>
+                        <div class="vue-card" style="margin-bottom:10px;">
+                            <label for="operationPeriod">operationPeriod</label><br><br>
+                            <label for="StartDate">startDate:</label>
+                            <input type="date" id="StartDate" name="StartDate"><br><br>
+                            <label for="EndDate">endDate:</label>
+                            <input type="date" id="EndDate" name="EndDate"><br><br>
+                        </div>
+                        <div class="vue-card" style="margin-bottom:10px;">
+                            <label for="file">file</label><br><br>
+                            <label for="fileName">FileName:</label>
+                            <input type="text" id="fileName" name="fileName"><br><br>
+                            <label for="file">File:</label>
+                            <input type="text" id="file" name="file"><br><br>
+                        </div>
+                        <div class="default-row">
+                            <div class="v-space"></div>
+                            <button type="button" onclick="saveAssignmentRequest()">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- The Modal -->
+            <div id="updateAssignmentRequest" class="modal">
+                <div class="modal-content">
+                    <div class="default-row">
+                        <h2>UpdateAssignmentRequest</h2>
+                        <div class="v-space"></div>
+                        <span class="close" onclick="closeDialog('updateAssignmentRequest')">&times;</span>
+                    </div>
+                    <form id="updateAssignmentRequestForm">
+                        <label for="requestId">RequestId:</label>
+                        <input type="number" id="requestId" name="requestId"><br><br>
+                        <label for="purpose">Purpose:</label>
+                        <input type="text" id="purpose" name="purpose"><br><br>
+                        <label for="numberOfPassengers">NumberOfPassengers:</label>
+                        <input type="number" id="numberOfPassengers" name="numberOfPassengers"><br><br>
+                        <label for="contactNumber">ContactNumber:</label>
+                        <input type="text" id="contactNumber" name="contactNumber"><br><br>
+                        <label for="remarks">Remarks:</label>
+                        <input type="text" id="remarks" name="remarks"><br><br>
+                        <div class="default-row">
+                            <div class="v-space"></div>
+                            <button type="button" onclick="updateAssignmentRequest()">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+            <!-- The Modal -->
+            <div id="cancelAssignmentRequest" class="modal">
+                <div class="modal-content">
+                    <div class="default-row">
+                        <h2>CancelAssignmentRequest</h2>
+                        <div class="v-space"></div>
+                        <span class="close" onclick="closeDialog('cancelAssignmentRequest')">&times;</span>
+                    </div>
+                    <form id="cancelAssignmentRequestForm">
+                        <label for="requestId">RequestId:</label>
+                        <input type="number" id="requestId" name="requestId"><br><br>
+                        <label for="cancellationReason">CancellationReason:</label>
+                        <input type="text" id="cancellationReason" name="cancellationReason"><br><br>
+                        <div class="default-row">
+                            <div class="v-space"></div>
+                            <button type="button" onclick="cancelAssignmentRequest()">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openDialog(id) {
+                document.getElementById(id).style.display = "block";
+            }
+
+            function closeDialog(id) {
+                document.getElementById(id).style.display = "none";
+            }
+
+            function updateAssignmentRequest() {
+                const No = document.getElementById('requestId').value;
+                const purpose = document.getElementById('purpose').value;
+                const numberOfPassengers = document.getElementById('numberOfPassengers').value;
+                const contactNumber = document.getElementById('contactNumber').value;
+                const remarks = document.getElementById('remarks').value;
+
+                // JSON 객체 생성
+                const data = {
+                    requestId: requestId,
+                    purpose: purpose,
+                    usageType: usageType,
+                    operationPeriod: operationPeriod,
+                    vehicleType: vehicleType,
+                    numberOfPassengers: numberOfPassengers,
+                    driverIncluded: driverIncluded,
+                    contactNumber: contactNumber,
+                    remarks: remarks,
+                    attachedDocuments: attachedDocuments,
+                };
+                submitUpdateAssignmentRequest(data);
+                closeDialog();
+            }
+            function cancelAssignmentRequest() {
+                const No = document.getElementById('requestId').value;
+                const cancellationReason = document.getElementById('cancellationReason').value;
+
+                // JSON 객체 생성
+                const data = {
+                    requestId: requestId,
+                    cancellationReason: cancellationReason,
+                };
+                submitCancelAssignmentRequest(data);
+                closeDialog();
+            }
+
+            function toggleSidebar() {
+                const sidebar = document.getElementById("mySidebar");
+                if (sidebar.style.width === "250px") {
+                    sidebar.style.width = "0";
+                } else {
+                    sidebar.style.width = "250px";
+                }
+            }
+            function search() {
+                const searchRequestId = document.getElementById('searchRequestId').value;
+                const searchApplicantName = document.getElementById('searchApplicantName').value;
+                const searchVehicleType = document.getElementById('searchVehicleType').value;
+                const searchOperationPeriod = document.getElementById('searchOperationPeriod').value;
+                const searchStatus = document.getElementById('searchStatus').value;
+
+                const searchParams = {
+                    requestId: searchRequestId,
+                    applicantName: searchApplicantName,
+                    vehicleType: searchVehicleType,
+                    operationPeriod: searchOperationPeriod,
+                    status: searchStatus,
+                };
+                searchResult(searchParams);
+            }
+            function search() {
+                const searchRequestId = document.getElementById('searchRequestId').value;
+                const searchApplicant = document.getElementById('searchApplicant').value;
+                const searchApprovalInfo = document.getElementById('searchApprovalInfo').value;
+                const searchPurpose = document.getElementById('searchPurpose').value;
+                const searchUsageType = document.getElementById('searchUsageType').value;
+                const searchOperationPeriod = document.getElementById('searchOperationPeriod').value;
+                const searchVehicleType = document.getElementById('searchVehicleType').value;
+                const searchNumberOfPassengers = document.getElementById('searchNumberOfPassengers').value;
+                const searchDriverIncluded = document.getElementById('searchDriverIncluded').value;
+                const searchContactNumber = document.getElementById('searchContactNumber').value;
+                const searchRemarks = document.getElementById('searchRemarks').value;
+                const searchAttachedDocuments = document.getElementById('searchAttachedDocuments').value;
+
+                const searchParams = {
+                    requestId: searchRequestId,
+                    applicant: searchApplicant,
+                    approvalInfo: searchApprovalInfo,
+                    purpose: searchPurpose,
+                    usageType: searchUsageType,
+                    operationPeriod: searchOperationPeriod,
+                    vehicleType: searchVehicleType,
+                    numberOfPassengers: searchNumberOfPassengers,
+                    driverIncluded: searchDriverIncluded,
+                    contactNumber: searchContactNumber,
+                    remarks: searchRemarks,
+                    attachedDocuments: searchAttachedDocuments,
+                };
+                searchResult(searchParams);
+            }
+            function saveAssignmentRequest(){
+                
+                const data = {
+                    No: document.getElementById('requestId').value,
+                    requestStatus: document.getElementById('requestStatus').value,
+                    purpose: document.getElementById('purpose').value,
+                    usageType: document.getElementById('usageType').value,
+                    numberOfPassengers: document.getElementById('numberOfPassengers').value,
+                    contactNumber: document.getElementById('contactNumber').value,
+                    remarks: document.getElementById('remarks').value,
+                    applicant: {
+                        Name: document.getElementById('Name').value,
+                        Department: document.getElementById('Department').value,
+                        EmployeeId: document.getElementById('EmployeeId').value,
+                        PhoneNumber: document.getElementById('PhoneNumber').value,
+                        MobileNumber: document.getElementById('MobileNumber').value,
+                        ApplicationDate: document.getElementById('ApplicationDate').value,
+                    },
+                    approvalInfo: {
+                        ApproverName: document.getElementById('ApproverName').value,
+                        ApproverPosition: document.getElementById('ApproverPosition').value,
+                    },
+                    operationPeriod: {
+                        StartDate: document.getElementById('StartDate').value,
+                        EndDate: document.getElementById('EndDate').value,
+                    },
+                    file: {
+                        fileName: document.getElementById('fileName').value,
+                        file: document.getElementById('file').value,
+                    },
+                };
+                save(data);
+                closeDialog('assignmentRequestDialog');
+            }
+        </script>
+    </body>
+</html>

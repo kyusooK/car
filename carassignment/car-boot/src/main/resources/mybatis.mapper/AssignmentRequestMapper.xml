@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.posco.carassignment.car.domain.assignmentRequest.mybatis.AssignmentRequestMapper">
+    
+    <select id="assignmentRequestSummary" resultType="AssignmentRequestSummaryResponse">
+        SELECT * 
+        FROM 
+        WHERE 
+    </select>
+    <select id="assignmentRequestDetails" resultType="AssignmentRequestDetailsResponse">
+        SELECT * 
+        FROM 
+        WHERE 
+    </select>
+</mapper>
